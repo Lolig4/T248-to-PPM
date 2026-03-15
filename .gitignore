@@ -1,0 +1,15 @@
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+
+# --- Arduino ---
+build/
+*.tmp
+*.log
+
+# --- Python tooling ---
+__pycache__/
+.venv/
+venv/
