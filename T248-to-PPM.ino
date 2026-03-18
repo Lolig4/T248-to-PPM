@@ -286,106 +286,87 @@ void clear_bits() {
     sendIntOut64(rpt1);
 }
 
+template<uint8_t Bit, typename Action>
+inline void onButtonRisingEdge(uint8_t buttons, Action action) {
+    static bool previous = false;
+    const bool current = ((buttons & (1u << Bit)) != 0);
+    if (current && !previous) action();
+    previous = current;
+}
+
+template<uint8_t Target, typename Action>
+inline void onDpadEdge(uint8_t current, Action action) {
+    static uint8_t previous = 15;
+    if (current == Target && previous != Target) action();
+    previous = current;
+}
+
 void handleSettings() {
     static bool Settings = false;
 
-    static bool prevMenuPressed = false;
-    const bool MenuPressed = ((wButtons1 & (1u << 7)) != 0);
-    if (MenuPressed && !prevMenuPressed) {
-        if (Settings) {
-            DisplayChar = (uint8_t)'N';
-            UpdateDisplay();
-            Settings = false;
-        }
-        else {
-            DisplayChar = (uint8_t)'S';
-            UpdateDisplay();
-            Settings = true;
-        }
-    }
-    prevMenuPressed = MenuPressed;
+    onButtonRisingEdge<7>(wButtons1, [&]() {
+        Settings = !Settings;
+        DisplayChar = Settings ? (uint8_t)'S' : (uint8_t)'N';
+        UpdateDisplay();
+    });
 
     if (!Settings) return;
 
-    static bool prevXPressed = false;
-    const bool XPressed = ((wButtons1 & (1u << 3)) != 0);
-    if (XPressed && !prevXPressed) {
+    onButtonRisingEdge<3>(wButtons1, [&]() {
         WheelRange = 180;
         SetRangeDeg(WheelRange);
         UpdateDisplay();
-    }
-    prevXPressed = XPressed;
+    });
 
-    static bool prevAPressed = false;
-    const bool APressed = ((wButtons1 & (1u << 5)) != 0);
-    if (APressed && !prevAPressed) {
+    onButtonRisingEdge<5>(wButtons1, [&]() {
         WheelRange = 360;
         SetRangeDeg(WheelRange);
         UpdateDisplay();
-    }
-    prevAPressed = APressed;
+    });
 
-    static bool prevBPressed = false;
-    const bool BPressed = ((wButtons1 & (1u << 4)) != 0);
-    if (BPressed && !prevBPressed) {
+    onButtonRisingEdge<4>(wButtons1, [&]() {
         WheelRange = 540;
         SetRangeDeg(WheelRange);
         UpdateDisplay();
-    }
-    prevBPressed = BPressed;
+    });
 
-    static bool prevYPressed = false;
-    const bool YPressed = ((wButtons1 & (1u << 2)) != 0);
-    if (YPressed && !prevYPressed) {
+    onButtonRisingEdge<2>(wButtons1, [&]() {
         WheelRange = 720;
         SetRangeDeg(WheelRange);
         UpdateDisplay();
-    }
-    prevYPressed = YPressed;
+    });
 
-    static uint8_t prevDpadUpPressed = 15;
-    const uint8_t DpadUpPressed = wDpad;
-    if (DpadUpPressed == 0 && prevDpadUpPressed != 0) {
+    onDpadEdge<0>(wDpad, [&]() {
         if (WheelRange < 850) { 
             WheelRange += 10;
             SetRangeDeg(WheelRange);
             UpdateDisplay();
         }
-    }
-    prevDpadUpPressed = DpadUpPressed;
+    });
 
-    static uint8_t prevDpadDownPressed = 15;
-    const uint8_t DpadDownPressed = wDpad;
-    if (DpadDownPressed == 4 && prevDpadDownPressed != 4) {
+    onDpadEdge<4>(wDpad, [&]() {
         if (WheelRange > 140) { 
             WheelRange -= 10;
             SetRangeDeg(WheelRange);
             UpdateDisplay();
         }
-    }
-    prevDpadDownPressed = DpadDownPressed;
+    });
 
-    static uint8_t prevDpadLeftPressed = 15;
-    const uint8_t DpadLeftPressed = wDpad;
-    if (DpadLeftPressed == 6 && prevDpadLeftPressed != 6) {
+    onDpadEdge<6>(wDpad, [&]() {
         if (AutoCenterStrength < 100) { 
             AutoCenterStrength += 1;
             SetAutoCenterStrength(AutoCenterStrength);
             UpdateDisplay();
         }
-    }
-    prevDpadLeftPressed = DpadLeftPressed;
+    });
 
-    static uint8_t prevDpadRightPressed = 15;
-    const uint8_t DpadRightPressed = wDpad;
-    if (DpadRightPressed == 2 && prevDpadRightPressed != 2) {
+    onDpadEdge<2>(wDpad, [&]() {
         if (AutoCenterStrength > 0) { 
             AutoCenterStrength -= 1;
             SetAutoCenterStrength(AutoCenterStrength);
             UpdateDisplay();
         }
-    }
-    prevDpadRightPressed = DpadRightPressed;
+    });
 }
 
 
